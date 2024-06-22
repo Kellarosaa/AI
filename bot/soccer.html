@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Ball Kicking Bot</title>
+  <style>
+    #field {
+      width: 500px;
+      height: 300px;
+      border: 1px solid black;
+      position: relative;
+    }
+    #ball {
+      width: 30px;
+      height: 30px;
+      background-color: orange;
+      border-radius: 50%;
+      position: absolute;
+      left: 50px;
+      top: 50px;
+    }
+    #net {
+      width: 100px;
+      height: 80px;
+      border: 2px solid black;
+      position: absolute;
+      right: 20px;
+      top: 110px;
+    }
+    #result {
+      margin-top: 20px;
+      font-size: 24px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div id="field">
+    <div id="ball"></div>
+    <div id="net"></div>
+  </div>
+  <div id="result"></div>
+
+  <script>
+    const ball = document.getElementById('ball');
+    const net = document.getElementById('net');
+    const resultDiv = document.getElementById('result');
+
+    let kickCount = 0;
+
+    function kickBall() {
+      const ballX = Math.floor(Math.random() * 400) + 50;
+      const ballY = Math.floor(Math.random() * 200) + 50;
+      ball.style.left = `${ballX}px`;
+      ball.style.top = `${ballY}px`;
+
+      const netX = parseInt(net.style.left, 10);
+      const netY = parseInt(net.style.top, 10);
+      const netWidth = parseInt(net.style.width, 10);
+      const netHeight = parseInt(net.style.height, 10);
+
+      if (
+        ballX >= netX &&
+        ballX <= netX + netWidth &&
+        ballY >= netY &&
+        ballY <= netY + netHeight
+      ) {
+        resultDiv.textContent = `The bot made it into the net in ${kickCount} kicks!`;
+        return;
+      }
+
+      kickCount++;
+      resultDiv.textContent = `The bot missed the net. Kick count: ${kickCount}`;
+      setTimeout(kickBall, 1000);
+    }
+
+    kickBall();
+  </script>
+</body>
+</html>

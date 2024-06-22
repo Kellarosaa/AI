@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html>
 <head>
@@ -10,22 +11,20 @@
     }
     #net {
       position: absolute;
-      width: 200px;
-      height: 100px;
-      background-color: green;
-      left: 80%;
-      top: 50%;
-      transform: translate(-50%, -50%);
+      width: 100px;
+      height: 200px;
+      background-color: #333;
+      right: 50px;
+      bottom: 50px;
     }
     #ball {
       position: absolute;
       width: 30px;
       height: 30px;
-      background-color: brown;
+      background-color: #ccc;
       border-radius: 50%;
-      left: 20%;
-      top: 50%;
-      transform: translate(-50%, -50%);
+      left: 50px;
+      bottom: 50px;
     }
   </style>
 </head>
@@ -45,7 +44,7 @@
     var world = engine.world;
 
     // Create the ball
-    var ball = Bodies.circle(20, 400, 15, {
+    var ball = Bodies.circle(50, 50, 15, {
       restitution: 0.8,
       friction: 0.1,
       density: 0.04
@@ -53,47 +52,36 @@
     World.add(world, ball);
 
     // Create the net
-    var net = Bodies.rectangle(800, 300, 200, 100, { isStatic: true });
+    var net = Bodies.rectangle(window.innerWidth - 100, window.innerHeight - 100, 100, 200, {
+      isStatic: true
+    });
     World.add(world, net);
 
-    // Create a constraint to kick the ball
-    var kickerConstraint = Constraint.create({
-      pointA: { x: 200, y: 400 },
-      bodyB: ball,
-      stiffness: 0.01,
-      length: 0
-    });
-    World.add(world, kickerConstraint);
+    // Kick the ball every second
+    setInterval(function() {
+      Matter.Body.setVelocity(ball, { x: 20, y: -20 });
+    }, 1000);
 
-    // Kick the ball
-    function kickBall() {
-      kickerConstraint.length = 0;
-      Matter.Body.applyForce(ball, ball.position, { x: 0.1, y: -0.1 });
-    }
-
-    // Check if the ball is in the net
+    // Check if the ball goes through the net
     function checkNet() {
-      if (ball.position.x > 700 && ball.position.y > 250 && ball.position.y < 350) {
+      if (ball.position.x > window.innerWidth - 150 && ball.position.y > window.innerHeight - 150) {
         console.log("Goal!");
-        return true;
       } else {
-        console.log("Miss!");
-        return false;
+        console.log("Miss! Punishing the bot...");
+        Matter.Body.setPosition(ball, { x: 50, y: 50 });
+        Matter.Body.setVelocity(ball, { x: 20, y: -20 });
       }
     }
 
-    // Game loop
+    // Run the game loop
     function gameLoop() {
       Engine.update(engine);
+      checkNet();
       requestAnimationFrame(gameLoop);
-
-      // Kick the ball if it's not in the net
-      if (!checkNet()) {
-        kickBall();
-      }
     }
 
     gameLoop();
   </script>
 </body>
 </html>
+```

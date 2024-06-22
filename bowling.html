@@ -1,117 +1,139 @@
-html<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html>
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Bowling Game</title>
-    <style>
-        canvas {
-            border: 1px solid black;
-        }
-        #game-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-    </style>
+  <title>Bowling Game</title>
+  <style>
+    #game-container {
+      width: 800px;
+      height: 400px;
+      border: 1px solid black;
+      position: relative;
+    }
+
+    #pins {
+      position: absolute;
+      bottom: 50px;
+      left: 50px;
+    }
+
+    .pin {
+      width: 30px;
+      height: 60px;
+      background-color: #ddd;
+      margin: 10px;
+      display: inline-block;
+    }
+
+    #ball {
+      width: 30px;
+      height: 30px;
+      background-color: #333;
+      border-radius: 50%;
+      position: absolute;
+      bottom: 50px;
+      left: 50px;
+    }
+  </style>
 </head>
 <body>
-    <div id="game-container">
-        <canvas id="gameCanvas" width="800" height="400"></canvas>
-        <button id="bowlButton">Bowl</button>
+  <div id="game-container">
+    <div id="pins">
+      <div class="pin"></div>
+      <div class="pin"></div>
+      <div class="pin"></div>
+      <div class="pin"></div>
+      <div class="pin"></div>
+      <div class="pin"></div>
+      <div class="pin"></div>
+      <div class="pin"></div>
+      <div class="pin"></div>
+      <div class="pin"></div>
     </div>
-    <script>
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        const bowlButton = document.getElementById('bowlButton');
+    <div id="ball"></div>
+  </div>
 
-        const pins = [];
-        const pinRadius = 10;
-        const ballRadius = 15;
-        let ball = { x: 400, y: 350, vx: 0, vy: 0 };
-        let ai = { angle: Math.random() * Math.PI / 2 - Math.PI / 4, speed: 5, reward: 0 };
+  <script>
+    const pins = document.querySelectorAll('.pin');
+    const ball = document.getElementById('ball');
+    let ballX = 50;
+    let ballY = 50;
+    let ballVelocityX = 0;
+    let ballVelocityY = 0;
+    let ballRadius = 15;
+    let gravity = 0.5;
+    let reward = 0;
+    let punishment = 0;
 
-        function resetPins() {
-            pins.length = 0;
-            for (let i = 0; i < 10; i++) {
-                pins.push({ x: 400 + (i % 2) * 20 - 10, y: 50 + Math.floor(i / 2) * 20, hit: false });
-            }
+    function resetGame() {
+      ballX = 50;
+      ballY = 50;
+      ballVelocityX = 0;
+      ballVelocityY = 0;
+      reward = 0;
+      punishment = 0;
+    }
+
+    function updateBallPosition() {
+      ballVelocityY += gravity;
+      ballX += ballVelocityX;
+      ballY += ballVelocityY;
+
+      ball.style.left = ballX + 'px';
+      ball.style.bottom = ballY + 'px';
+    }
+
+    function checkCollisions() {
+      for (let i = 0; i < pins.length; i++) {
+        const pin = pins[i];
+        const pinX = pin.offsetLeft + pin.offsetWidth / 2;
+        const pinY = pin.offsetTop + pin.offsetHeight / 2;
+        const distance = Math.sqrt((ballX - pinX) ** 2 + (ballY - pinY) ** 2);
+
+        if (distance < ballRadius + 15) {
+          pin.style.backgroundColor = '#f00';
+          reward++;
+          setTimeout(() => {
+            pin.style.backgroundColor = '#ddd';
+          }, 500);
         }
+      }
 
-        function drawPins() {
-            ctx.fillStyle = 'red';
-            pins.forEach(pin => {
-                if (!pin.hit) {
-                    ctx.beginPath();
-                    ctx.arc(pin.x, pin.y, pinRadius, 0, Math.PI * 2);
-                    ctx.fill();
-                }
-            });
-        }
+      if (ballY < ballRadius) {
+        ballVelocityY = -ballVelocityY * 0.9;
+        punishment++;
+      }
 
-        function drawBall() {
-            ctx.fillStyle = 'blue';
-            ctx.beginPath();
-            ctx.arc(ball.x, ball.y, ballRadius, 0, Math.PI * 2);
-            ctx.fill();
-        }
+      if (ballX < ballRadius || ballX > 800 - ballRadius) {
+        ballVelocityX = -ballVelocityX * 0.9;
+        punishment++;
+      }
 
-        function updateBall() {
-            ball.x += ball.vx;
-            ball.y += ball.vy;
-            if (ball.x < ballRadius || ball.x > canvas.width - ballRadius) ball.vx *= -1;
-            if (ball.y < ballRadius || ball.y > canvas.height - ballRadius) ball.vy *= -1;
-        }
+      if (ballY > 400 - ballRadius) {
+        resetGame();
+      }
+    }
 
-        function checkCollisions() {
-            pins.forEach(pin => {
-                if (!pin.hit) {
-                    const dx = ball.x - pin.x;
-                    const dy = ball.y - pin.y;
-                    const distance = Math.sqrt(dx * dx + dy * dy);
-                    if (distance < ballRadius + pinRadius) {
-                        pin.hit = true;
-                        ai.reward += 1;
-                    }
-                }
-            });
-        }
+    function updateAI() {
+      ballVelocityX = Math.random() * 10 - 5;
+      ballVelocityY = -Math.random() * 10 - 5;
 
-        function updateAI() {
-            if (ai.reward > 0) {
-                ai.speed += 0.1;
-            } else {
-                ai.speed -= 0.1;
-            }
-            ai.angle = Math.random() * Math.PI / 2 - Math.PI / 4;
-            ai.reward = 0;
-        }
+      if (reward > punishment) {
+        ballVelocityX *= 1.1;
+        ballVelocityY *= 1.1;
+      } else {
+        ballVelocityX *= 0.9;
+        ballVelocityY *= 0.9;
+      }
+    }
 
-        function bowl() {
-            ball = { x: 400, y: 350, vx: ai.speed * Math.cos(ai.angle), vy: -ai.speed * Math.sin(ai.angle) };
-        }
+    function gameLoop() {
+      updateBallPosition();
+      checkCollisions();
+      updateAI();
+      requestAnimationFrame(gameLoop);
+    }
 
-        function gameLoop() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            updateBall();
-            checkCollisions();
-            drawPins();
-            drawBall();
-            if (ball.y < ballRadius) {
-                updateAI();
-                resetPins();
-                bowl();
-            }
-            requestAnimationFrame(gameLoop);
-        }
-
-        bowlButton.addEventListener('click', () => {
-            resetPins();
-            bowl();
-        });
-
-        resetPins();
-        gameLoop();
-    </script>
+    gameLoop();
+  </script>
 </body>
 </html>

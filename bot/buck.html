@@ -1,1 +1,53 @@
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Euchre Card Bot</title>
+</head>
+<body>
+  <h1>Euchre Card Bot</h1>
+  <label for="currentCard">Current Card:</label>
+  <input type="text" id="currentCard" name="currentCard"><br>
 
+  <label for="previousCard">Previous Card:</label>
+  <input type="text" id="previousCard" name="previousCard"><br>
+
+  <button onclick="getNextCard()">Get Next Card</button>
+
+  <p id="result"></p>
+
+  <script>
+    function getNextCard() {
+      const currentCard = document.getElementById("currentCard").value.toLowerCase();
+      const previousCard = document.getElementById("previousCard").value.toLowerCase();
+
+      let nextCard;
+
+      switch (currentCard) {
+        case "right":
+          nextCard = "left";
+          break;
+        case "left":
+          nextCard = "right";
+          break;
+        case "bower":
+          nextCard = "trump";
+          break;
+        case "trump":
+          if (previousCard === "right" || previousCard === "left" || previousCard === "bower") {
+            nextCard = "trump";
+          } else {
+            nextCard = "any";
+          }
+          break;
+        default:
+          nextCard = "any";
+          break;
+      }
+
+      document.getElementById("result").textContent = `You should play the ${nextCard} card.`;
+    }
+  </script>
+</body>
+</html>
+```

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Bogo Sort</title>
+  <style>
+    .bar {
+      width: 75px;
+      background-color: blue;
+      margin: 2px;
+      display: inline-block;
+    }
+  </style>
+</head>
+<body>
+  <div id="bars"></div>
+  <button id="sortButton">Sort</button>
+
+  <script>
+    // Generate random bar heights
+    const numBars = 5;
+    const bars = [];
+    for (let i = 0; i < numBars; i++) {
+      const bar = document.createElement('div');
+      bar.classList.add('bar');
+      bar.style.height = `${Math.floor(Math.random() * 100) + 1}px`;
+      bars.push(bar);
+    }
+    const barsContainer = document.getElementById('bars');
+    bars.forEach(bar => barsContainer.appendChild(bar));
+
+    // Bogo sort function
+    function bogoSort() {
+      // Check if the bars are in order
+      let sorted = true;
+      for (let i = 1; i < bars.length; i++) {
+        if (parseInt(bars[i].style.height) < parseInt(bars[i - 1].style.height)) {
+          sorted = false;
+          break;
+        }
+      }
+
+      if (sorted) {
+        return;
+      }
+
+      // Shuffle the bars
+      for (let i = 0; i < bars.length; i++) {
+        const randomIndex = Math.floor(Math.random() * bars.length);
+        barsContainer.appendChild(bars[randomIndex]);
+      }
+
+      // Call the function again after 500ms
+      setTimeout(bogoSort, 500);
+    }
+
+    // Start the sort when the button is clicked
+    document.getElementById('sortButton').addEventListener('click', bogoSort);
+  </script>
+</body>
+</html>

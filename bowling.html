@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+html<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -8,32 +8,33 @@
         canvas {
             border: 1px solid black;
         }
+        #game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
     </style>
 </head>
 <body>
-    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    <div id="game-container">
+        <canvas id="gameCanvas" width="800" height="400"></canvas>
+        <button id="bowlButton">Bowl</button>
+    </div>
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
+        const bowlButton = document.getElementById('bowlButton');
 
         const pins = [];
         const pinRadius = 10;
         const ballRadius = 15;
-        let ballX = canvas.width / 2;
-        let ballY = canvas.height - 30;
-        let ballSpeedX = 0;
-        let ballSpeedY = -5;
-        let score = 0;
-        let aiKnowledge = { angle: 0, speed: 5 };
+        let ball = { x: 400, y: 350, vx: 0, vy: 0 };
+        let ai = { angle: Math.random() * Math.PI / 2 - Math.PI / 4, speed: 5, reward: 0 };
 
         function resetPins() {
             pins.length = 0;
             for (let i = 0; i < 10; i++) {
-                pins.push({
-                    x: canvas.width / 2 + (i % 2 === 0 ? -20 : 20) * (i % 5),
-                    y: 100 + Math.floor(i / 2) * 20,
-                    hit: false
-                });
+                pins.push({ x: 400 + (i % 2) * 20 - 10, y: 50 + Math.floor(i / 2) * 20, hit: false });
             }
         }
 
@@ -51,64 +52,65 @@
         function drawBall() {
             ctx.fillStyle = 'blue';
             ctx.beginPath();
-            ctx.arc(ballX, ballY, ballRadius, 0, Math.PI * 2);
+            ctx.arc(ball.x, ball.y, ballRadius, 0, Math.PI * 2);
             ctx.fill();
         }
 
         function updateBall() {
-            ballX += ballSpeedX;
-            ballY += ballSpeedY;
-
-            if (ballX < ballRadius || ballX > canvas.width - ballRadius) {
-                ballSpeedX = -ballSpeedX;
-            }
-
-            if (ballY < ballRadius) {
-                ballSpeedY = -ballSpeedY;
-            }
-
-            pins.forEach(pin => {
-                if (!pin.hit && Math.hypot(ballX - pin.x, ballY - pin.y) < ballRadius + pinRadius) {
-                    pin.hit = true;
-                    score += 10;
-                    ballSpeedX = -ballSpeedX;
-                    ballSpeedY = -ballSpeedY;
-                }
-            });
-
-            if (ballY > canvas.height) {
-                resetGame();
-            }
+            ball.x += ball.vx;
+            ball.y += ball.vy;
+            if (ball.x < ballRadius || ball.x > canvas.width - ballRadius) ball.vx *= -1;
+            if (ball.y < ballRadius || ball.y > canvas.height - ballRadius) ball.vy *= -1;
         }
 
-        function resetGame() {
-            ballX = canvas.width / 2;
-            ballY = canvas.height - 30;
-            ballSpeedX = aiKnowledge.angle;
-            ballSpeedY = -aiKnowledge.speed;
+        function checkCollisions() {
+            pins.forEach(pin => {
+                if (!pin.hit) {
+                    const dx = ball.x - pin.x;
+                    const dy = ball.y - pin.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    if (distance < ballRadius + pinRadius) {
+                        pin.hit = true;
+                        ai.reward += 1;
+                    }
+                }
+            });
+        }
 
-            if (score > 0) {
-                aiKnowledge.angle += 0.1;
-                aiKnowledge.speed += 0.1;
+        function updateAI() {
+            if (ai.reward > 0) {
+                ai.speed += 0.1;
             } else {
-                aiKnowledge.angle -= 0.1;
-                aiKnowledge.speed -= 0.1;
+                ai.speed -= 0.1;
             }
+            ai.angle = Math.random() * Math.PI / 2 - Math.PI / 4;
+            ai.reward = 0;
+        }
 
-            score = 0;
-            resetPins();
+        function bowl() {
+            ball = { x: 400, y: 350, vx: ai.speed * Math.cos(ai.angle), vy: -ai.speed * Math.sin(ai.angle) };
         }
 
         function gameLoop() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+            updateBall();
+            checkCollisions();
             drawPins();
             drawBall();
-            updateBall();
+            if (ball.y < ballRadius) {
+                updateAI();
+                resetPins();
+                bowl();
+            }
             requestAnimationFrame(gameLoop);
         }
 
+        bowlButton.addEventListener('click', () => {
+            resetPins();
+            bowl();
+        });
+
         resetPins();
-        resetGame();
         gameLoop();
     </script>
 </body>

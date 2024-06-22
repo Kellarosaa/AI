@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Fish Simulation</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+        canvas {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="simulationCanvas"></canvas>
+    <script>
+        const canvas = document.getElementById('simulationCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const colors = ['red', 'green', 'blue', 'yellow', 'purple'];
+        const colorSpeeds = {
+            'red': 2,
+            'green': 3,
+            'blue': 4,
+            'yellow': 5,
+            'purple': 6
+        };
+
+        class Fish {
+            constructor(x, y, color) {
+                this.x = x;
+                this.y = y;
+                this.color = color;
+                this.speed = colorSpeeds[color];
+                this.timeWithoutFood = 0;
+            }
+
+            moveTowards(food) {
+                const dx = food.x - this.x;
+                const dy = food.y - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                this.x += (dx / distance) * this.speed;
+                this.y += (dy / distance) * this.speed;
+            }
+
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, 10, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        class Food {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+            }
+
+            draw() {
+                ctx.fillStyle = 'brown';
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, 5, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        const fishes = [];
+        const foods = [];
+
+        function spawnFish() {
+            const x = Math.random() * canvas.width;
+            const y = Math.random() * canvas.height;
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            fishes.push(new Fish(x, y, color));
+        }
+
+        function spawnFood() {
+            const x = Math.random() * canvas.width;
+            const y = Math.random() * canvas.height;
+            foods.push(new Food(x, y));
+        }
+
+        function update() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            for (let food of foods) {
+                food.draw();
+            }
+
+            for (let fish of fishes) {
+                if (foods.length > 0) {
+                    let nearestFood = foods[0];
+                    let minDistance = Infinity;
+                    for (let food of foods) {
+                        const distance = Math.sqrt((fish.x - food.x) ** 2 + (fish.y - food.y) ** 2);
+                        if (distance < minDistance) {
+                            minDistance = distance;
+                            nearestFood = food;
+                        }
+                    }
+                    fish.moveTowards(nearestFood);
+
+                    if (minDistance < 10) {
+                        foods.splice(foods.indexOf(nearestFood), 1);
+                        fish.timeWithoutFood = 0;
+                        const babyColor = colors[Math.min(colors.indexOf(fish.color) + 1, colors.length - 1)];
+                        fishes.push(new Fish(fish.x, fish.y, babyColor));
+                    } else {
+                        fish.timeWithoutFood += 1;
+                    }
+                } else {
+                    fish.timeWithoutFood += 1;
+                }
+
+                if (fish.timeWithoutFood > 300) {
+                    fishes.splice(fishes.indexOf(fish), 1);
+                } else {
+                    fish.draw();
+                }
+            }
+
+            if (foods.length < 5) {
+                spawnFood();
+            }
+
+            requestAnimationFrame(update);
+        }
+
+        for (let i = 0; i < 10; i++) {
+            spawnFish();
+        }
+
+        update();
+    </script>
+</body>
+</html>

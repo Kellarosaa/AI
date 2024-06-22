@@ -3,77 +3,97 @@
 <head>
   <title>Ball Kicking Bot</title>
   <style>
-    #field {
-      width: 500px;
-      height: 300px;
-      border: 1px solid black;
-      position: relative;
-    }
-    #ball {
-      width: 30px;
-      height: 30px;
-      background-color: orange;
-      border-radius: 50%;
-      position: absolute;
-      left: 50px;
-      top: 50px;
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
     }
     #net {
-      width: 100px;
-      height: 80px;
-      border: 2px solid black;
       position: absolute;
-      right: 20px;
-      top: 110px;
+      width: 200px;
+      height: 100px;
+      background-color: green;
+      left: 80%;
+      top: 50%;
+      transform: translate(-50%, -50%);
     }
-    #result {
-      margin-top: 20px;
-      font-size: 24px;
-      font-weight: bold;
+    #ball {
+      position: absolute;
+      width: 30px;
+      height: 30px;
+      background-color: brown;
+      border-radius: 50%;
+      left: 20%;
+      top: 50%;
+      transform: translate(-50%, -50%);
     }
   </style>
 </head>
 <body>
-  <div id="field">
-    <div id="ball"></div>
-    <div id="net"></div>
-  </div>
-  <div id="result"></div>
+  <div id="net"></div>
+  <div id="ball"></div>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.18.0/matter.min.js"></script>
   <script>
-    const ball = document.getElementById('ball');
-    const net = document.getElementById('net');
-    const resultDiv = document.getElementById('result');
+    // Initialize Matter.js
+    var Engine = Matter.Engine,
+        World = Matter.World,
+        Bodies = Matter.Bodies,
+        Constraint = Matter.Constraint;
 
-    let kickCount = 0;
+    var engine = Engine.create();
+    var world = engine.world;
 
+    // Create the ball
+    var ball = Bodies.circle(20, 400, 15, {
+      restitution: 0.8,
+      friction: 0.1,
+      density: 0.04
+    });
+    World.add(world, ball);
+
+    // Create the net
+    var net = Bodies.rectangle(800, 300, 200, 100, { isStatic: true });
+    World.add(world, net);
+
+    // Create a constraint to kick the ball
+    var kickerConstraint = Constraint.create({
+      pointA: { x: 200, y: 400 },
+      bodyB: ball,
+      stiffness: 0.01,
+      length: 0
+    });
+    World.add(world, kickerConstraint);
+
+    // Kick the ball
     function kickBall() {
-      const ballX = Math.floor(Math.random() * 400) + 50;
-      const ballY = Math.floor(Math.random() * 200) + 50;
-      ball.style.left = `${ballX}px`;
-      ball.style.top = `${ballY}px`;
-
-      const netX = parseInt(net.style.left, 10);
-      const netY = parseInt(net.style.top, 10);
-      const netWidth = parseInt(net.style.width, 10);
-      const netHeight = parseInt(net.style.height, 10);
-
-      if (
-        ballX >= netX &&
-        ballX <= netX + netWidth &&
-        ballY >= netY &&
-        ballY <= netY + netHeight
-      ) {
-        resultDiv.textContent = `The bot made it into the net in ${kickCount} kicks!`;
-        return;
-      }
-
-      kickCount++;
-      resultDiv.textContent = `The bot missed the net. Kick count: ${kickCount}`;
-      setTimeout(kickBall, 1000);
+      kickerConstraint.length = 0;
+      Matter.Body.applyForce(ball, ball.position, { x: 0.1, y: -0.1 });
     }
 
-    kickBall();
+    // Check if the ball is in the net
+    function checkNet() {
+      if (ball.position.x > 700 && ball.position.y > 250 && ball.position.y < 350) {
+        console.log("Goal!");
+        return true;
+      } else {
+        console.log("Miss!");
+        return false;
+      }
+    }
+
+    // Game loop
+    function gameLoop() {
+      Engine.update(engine);
+      requestAnimationFrame(gameLoop);
+
+      // Kick the ball if it's not in the net
+      if (!checkNet()) {
+        kickBall();
+      }
+    }
+
+    gameLoop();
   </script>
 </body>
 </html>

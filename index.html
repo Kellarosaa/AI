@@ -124,14 +124,14 @@
                     fish.timeWithoutFood += 1;
                 }
 
-                if (fish.timeWithoutFood > 300) {
+                if (fish.timeWithoutFood > 400) {
                     fishes.splice(fishes.indexOf(fish), 1);
                 } else {
                     fish.draw();
                 }
             }
 
-            if (foods.length < 2) {
+            if (foods.length < 3) {
                 spawnFood();
             }
 

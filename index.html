@@ -30,11 +30,11 @@
         const colors = ['red', 'green', 'blue', 'yellow', 'purple', 'pink'];
         const colorSpeeds = {
             'red': 2,
-            'green': 2.2,
-            'blue': 2.4,
-            'yellow': 2.6,
-            'purple': 2.8,
-            'pink': 3
+            'green': 2.1,
+            'blue': 2.2,
+            'yellow': 2.3,
+            'purple': 2.4,
+            'pink': 2.5
         };
 
         class Fish {
@@ -124,7 +124,7 @@
                     fish.timeWithoutFood += 1;
                 }
 
-                if (fish.timeWithoutFood > 400) {
+                if (fish.timeWithoutFood > 500) {
                     fishes.splice(fishes.indexOf(fish), 1);
                 } else {
                     fish.draw();

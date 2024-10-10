@@ -1,0 +1,35 @@
+# Question Answering Application
+
+import tkinter as tk
+import requests
+
+API_KEY = "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"
+API_URL = "https://api-inference.huggingface.co/models/aiforpython"
+
+def get_answer(question):
+    headers = {"Authorization": f"Bearer {API_KEY}"}
+    response = requests.post(API_URL, headers=headers, json={"inputs": question})
+    return response.json()
+
+def on_submit():
+    user_input = entry.get()
+    if user_input.startswith("link:"):
+        link = user_input.split("link:")[1]
+        webbrowser.open(link)
+    else:
+        answer = get_answer(user_input)
+        output_label.config(text=answer)
+
+app = tk.Tk()
+app.title("Question Answering App")
+
+entry = tk.Entry(app, width=50)
+entry.pack(pady=20)
+
+submit_button = tk.Button(app, text="Ask", command=on_submit)
+submit_button.pack(pady=10)
+
+output_label = tk.Label(app, text="", wraplength=400)
+output_label.pack(pady=20)
+
+app.mainloop()
